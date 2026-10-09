@@ -1,0 +1,6 @@
+@LogisticsFleetTracker.Api_HostAddress = http://localhost:5157
+
+GET {{LogisticsFleetTracker.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

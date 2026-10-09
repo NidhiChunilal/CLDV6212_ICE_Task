@@ -1,0 +1,12 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\backend",
+    "\\backend\\LogisticsFleetTracker.Api",
+    "\\backend\\LogisticsFleetTracker.Api\\Controllers",
+    "\\backend\\LogisticsFleetTracker.Api\\Data",
+    "\\backend\\LogisticsFleetTracker.Api\\Properties"
+  ],
+  "SelectedNode": "\\backend\\LogisticsFleetTracker.Api\\Program.cs",
+  "PreviewInSolutionExplorer": false
+}
