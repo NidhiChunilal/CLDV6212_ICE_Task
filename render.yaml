@@ -15,8 +15,9 @@ services:
         sync: false
 
   # ─── 2. Frontend (Static Site on Global CDN) ───
-  - type: static
+  - type: web
     name: logistics-fleet-ui
+    runtime: static
     rootDir: ./frontend
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
