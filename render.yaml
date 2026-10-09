@@ -1,0 +1,28 @@
+services:
+  # ─── 1. Backend API (Docker .NET 10 Web Service) ───
+  - type: web
+    name: logistics-fleet-api
+    runtime: docker
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    plan: free
+    region: frankfurt
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      # Set your Supabase connection string in the Render Dashboard:
+      - key: DATABASE_URL
+        sync: false
+
+  # ─── 2. Frontend (Static Site on Global CDN) ───
+  - type: web
+    name: logistics-fleet-ui
+    runtime: static
+    rootDir: ./frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    plan: free
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

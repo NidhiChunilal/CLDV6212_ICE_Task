@@ -1,24 +1,95 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
     branches:
       - main
       - develop
-
   pull_request:
     branches:
       - main
+      - develop
 
 jobs:
-  project-check:
+  # 1. Backend Build & Test
+  backend-ci:
+    name: Backend Build (.NET 10)
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check repository
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore backend/LogisticsFleetTracker.Api/LogisticsFleetTracker.Api.csproj
+
+      - name: Build Backend
+        run: dotnet build backend/LogisticsFleetTracker.Api/LogisticsFleetTracker.Api.csproj --no-restore --configuration Release
+
+      - name: Run Backend Unit Tests
+        run: dotnet test backend/LogisticsFleetTracker.Tests/LogisticsFleetTracker.Tests.csproj --configuration Release
+
+  # 2. Frontend Build & Lint
+  frontend-ci:
+    name: Frontend Build (React & Vite)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
         run: |
-          echo "Repository checkout successful."
-          echo "CI workflow is running successfully."
+          cd frontend
+          npm ci
+
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm run build
+
+  # 3. Docker Compose Verification
+  docker-ci:
+    name: Docker Multi-Container Build Verification
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker Compose Stack
+        run: docker compose build
+
+  # 4. Security Scan
+  security-scan:
+    name: Security & Vulnerability Scan
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
